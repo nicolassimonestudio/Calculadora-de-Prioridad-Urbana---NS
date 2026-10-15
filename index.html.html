@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Priorización Urbana - Matriz Multicriterio</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <!-- Top Navigation Bar -->
+  <header class="bg-slate-900 text-white shadow-md border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-inner">
+          U
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight tracking-tight">Calculadora de Baremación Urbana</h1>
+          <p class="text-xs text-slate-400">Asesoría Urbana Romano Norri | San Miguel de Tucumán</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-400 hidden sm:inline">Casos rápidos:</span>
+        <button id="btn-preset-sat" class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">SAT-Municipio</button>
+        <button id="btn-preset-pimu" class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Paradas PIMU</button>
+        <button id="btn-preset-suds" class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Drenaje SUDS</button>
+        <button id="btn-preset-cpu" class="px-2.5 py-1.5 text-xs font-medium rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Patrimonio CPU</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Intro Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Metodología de Ponderación Multicriterio</h2>
+        <p class="text-xs text-slate-600 mt-0.5">
+          Fórmula técnica: <span class="font-mono font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">Puntaje = (Impacto × 0.35) + (Urgencia × 0.25) + (Viabilidad × 0.20) + (Densidad × 0.20)</span>
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-reset-form" class="text-xs px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 font-medium transition">
+          Limpiar campos
+        </button>
+      </div>
+    </div>
+
+    <!-- 2 Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Left Column: Form & Rubric Selectors (7 cols) -->
+      <section class="lg:col-span-7 space-y-5">
+        <!-- Project Details Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+          <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
+            <span>Datos de la Iniciativa</span>
+            <span class="text-xs font-normal text-slate-500">Paso 1 de 2</span>
+          </h3>
+          <div class="space-y-3">
+            <div>
+              <label for="project-name" class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Proyecto / Iniciativa:</label>
+              <input type="text" id="project-name" class="w-full text-sm rounded-lg border-slate-300 border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Ej: Protocolo de Coordinación SAT - Municipio">
+            </div>
+            <div>
+              <label for="project-desc" class="block text-xs font-semibold text-slate-700 mb-1">Encuadre / Justificación Técnica Breve:</label>
+              <textarea id="project-desc" rows="2" class="w-full text-xs rounded-lg border-slate-300 border px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Ventanilla única de interferencias, reducción de baches y control cruzado..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Criterion 1: Impacto Civico (35%) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 transition-all" id="card-c1">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center">1</span>
+              <h4 class="text-sm font-bold text-slate-900">Impacto Cívico y Escala</h4>
+            </div>
+            <span class="text-xs font-semibold bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full border border-blue-200">Peso: 35% (× 0.35)</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">Mide el volumen de beneficiarios directos e indirectos en la escala urbana o metropolitana.</p>
+          
+          <!-- Rating buttons -->
+          <div class="grid grid-cols-5 gap-2 mb-3" id="group-c1">
+            <button type="button" data-val="1" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-blue-400 transition text-center">1</button>
+            <button type="button" data-val="2" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-blue-400 transition text-center">2</button>
+            <button type="button" data-val="3" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-blue-400 transition text-center">3</button>
+            <button type="button" data-val="4" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-blue-400 transition text-center">4</button>
+            <button type="button" data-val="5" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-blue-400 transition text-center">5</button>
+          </div>
+
+          <!-- Dynamic Rubric Definition Display -->
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs" id="desc-c1">
+            <div class="font-semibold text-slate-700 mb-0.5" id="label-c1">Nivel seleccionado: 5 (Metropolitano / Masivo)</div>
+            <div class="text-slate-600" id="detail-c1">Más de 200.000 personas beneficiadas; afecta la infraestructura troncal, el transporte masivo o la salud pública metropolitana.</div>
+            <div class="mt-2 text-right font-mono font-medium text-blue-700 text-xs" id="calc-c1">Aporte: 5 × 0.35 = 1.75 pts</div>
+          </div>
+        </div>
+
+        <!-- Criterion 2: Urgencia Coyuntural (25%) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 transition-all" id="card-c2">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 font-bold text-xs flex items-center justify-center">2</span>
+              <h4 class="text-sm font-bold text-slate-900">Urgencia Coyuntural y Oportunidad</h4>
+            </div>
+            <span class="text-xs font-semibold bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full border border-amber-200">Peso: 25% (× 0.25)</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">Mide el riesgo de inacción inmediata, estacionalidad (ej: lluvias) o ventana legislativa abierta.</p>
+          
+          <div class="grid grid-cols-5 gap-2 mb-3" id="group-c2">
+            <button type="button" data-val="1" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-amber-400 transition text-center">1</button>
+            <button type="button" data-val="2" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-amber-400 transition text-center">2</button>
+            <button type="button" data-val="3" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-amber-400 transition text-center">3</button>
+            <button type="button" data-val="4" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-amber-400 transition text-center">4</button>
+            <button type="button" data-val="5" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-amber-400 transition text-center">5</button>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs" id="desc-c2">
+            <div class="font-semibold text-slate-700 mb-0.5" id="label-c2">Nivel seleccionado: 5 (Crítica / Inmediata)</div>
+            <div class="text-slate-600" id="detail-c2">Menos de 30 días; riesgo inminente de daño físico o colapso irreversible (inicio del ciclo de lluvias o socavamiento activo).</div>
+            <div class="mt-2 text-right font-mono font-medium text-amber-700 text-xs" id="calc-c2">Aporte: 5 × 0.25 = 1.25 pts</div>
+          </div>
+        </div>
+
+        <!-- Criterion 3: Viabilidad Tecnica y Legal (20%) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 transition-all" id="card-c3">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">3</span>
+              <h4 class="text-sm font-bold text-slate-900">Viabilidad Técnica y Legal</h4>
+            </div>
+            <span class="text-xs font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full border border-emerald-200">Peso: 20% (× 0.20)</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">Evalúa la complejidad institucional, competencias de gobierno, necesidad presupuestaria o articulación.</p>
+          
+          <div class="grid grid-cols-5 gap-2 mb-3" id="group-c3">
+            <button type="button" data-val="1" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-emerald-400 transition text-center">1</button>
+            <button type="button" data-val="2" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-emerald-400 transition text-center">2</button>
+            <button type="button" data-val="3" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-emerald-400 transition text-center">3</button>
+            <button type="button" data-val="4" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-emerald-400 transition text-center">4</button>
+            <button type="button" data-val="5" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-emerald-400 transition text-center">5</button>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs" id="desc-c3">
+            <div class="font-semibold text-slate-700 mb-0.5" id="label-c3">Nivel seleccionado: 4 (Favorable / Factible)</div>
+            <div class="text-slate-600" id="detail-c3">Se resuelve mediante Ordenanza municipal o Ley provincial de adhesión, con costo fiscal bajo, nulo o financiado por el sector privado.</div>
+            <div class="mt-2 text-right font-mono font-medium text-emerald-700 text-xs" id="calc-c3">Aporte: 4 × 0.20 = 0.80 pts</div>
+          </div>
+        </div>
+
+        <!-- Criterion 4: Densidad Poblacional (20%) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 transition-all" id="card-c4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center">4</span>
+              <h4 class="text-sm font-bold text-slate-900">Densidad Poblacional Afectada</h4>
+            </div>
+            <span class="text-xs font-semibold bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full border border-purple-200">Peso: 20% (× 0.20)</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">Concentración territorial de habitantes y usuarios según datos censales en San Miguel de Tucumán.</p>
+          
+          <div class="grid grid-cols-5 gap-2 mb-3" id="group-c4">
+            <button type="button" data-val="1" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-purple-400 transition text-center">1</button>
+            <button type="button" data-val="2" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-purple-400 transition text-center">2</button>
+            <button type="button" data-val="3" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-purple-400 transition text-center">3</button>
+            <button type="button" data-val="4" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-purple-400 transition text-center">4</button>
+            <button type="button" data-val="5" class="btn-score py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-purple-400 transition text-center">5</button>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs" id="desc-c4">
+            <div class="font-semibold text-slate-700 mb-0.5" id="label-c4">Nivel seleccionado: 5 (Hiperdensidad / Nodal)</div>
+            <div class="text-slate-600" id="detail-c4">Más de 10.000 hab/km² o nodos de máxima afluencia de pasajeros diarios (Microcentro, Barrio Sur, Barrio Norte).</div>
+            <div class="mt-2 text-right font-mono font-medium text-purple-700 text-xs" id="calc-c4">Aporte: 5 × 0.20 = 1.00 pts</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Results Dashboard & Project Ranking (5 cols) -->
+      <aside class="lg:col-span-5 space-y-5 lg:sticky lg:top-20">
+        <!-- Results Summary Card -->
+        <div class="bg-white rounded-xl shadow-md border border-slate-200 p-6">
+          <div class="text-center pb-4 border-b border-slate-100">
+            <div class="text-xs uppercase font-bold tracking-wider text-slate-400 mb-1">Puntaje Global Ponderado</div>
+            <div class="flex items-center justify-center space-x-2">
+              <span id="score-total" class="text-5xl font-extrabold tracking-tight text-slate-900">4.80</span>
+              <span class="text-sm font-medium text-slate-400">/ 5.00</span>
+            </div>
+            <div class="mt-3">
+              <span id="badge-priority" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-sm">
+                Prioridad 1 — Inmediata
+              </span>
+            </div>
+          </div>
+
+          <!-- Mathematical Breakdown Bars -->
+          <div class="py-4 space-y-3 text-xs border-b border-slate-100">
+            <div>
+              <div class="flex justify-between font-medium mb-1">
+                <span class="text-slate-600">Impacto Cívico (×0.35)</span>
+                <span id="val-c1-calc" class="font-mono text-blue-700 font-bold">1.75 / 1.75</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="bar-c1" class="bg-blue-600 h-full rounded-full transition-all duration-300" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between font-medium mb-1">
+                <span class="text-slate-600">Urgencia Coyuntural (×0.25)</span>
+                <span id="val-c2-calc" class="font-mono text-amber-700 font-bold">1.25 / 1.25</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="bar-c2" class="bg-amber-500 h-full rounded-full transition-all duration-300" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between font-medium mb-1">
+                <span class="text-slate-600">Viabilidad Técnica (×0.20)</span>
+                <span id="val-c3-calc" class="font-mono text-emerald-700 font-bold">0.80 / 1.00</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="bar-c3" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 80%;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between font-medium mb-1">
+                <span class="text-slate-600">Densidad Afectada (×0.20)</span>
+                <span id="val-c4-calc" class="font-mono text-purple-700 font-bold">1.00 / 1.00</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div id="bar-c4" class="bg-purple-600 h-full rounded-full transition-all duration-300" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Executive recommendation text -->
+          <div class="pt-3 pb-4">
+            <h5 class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-1">Recomendación para Romano Norri:</h5>
+            <p id="recommendation-text" class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              Iniciativa de máxima prioridad. Redactar proyecto de Ordenanza o Ley de inmediato para su tratamiento en la próxima sesión.
+            </p>
+          </div>
+
+          <!-- Actions -->
+          <div class="space-y-2">
+            <button id="btn-save-project" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center justify-center space-x-1.5">
+              <span>Guardar en Lista Comparativa</span>
+            </button>
+            <button id="btn-copy-summary" class="w-full py-2 px-4 border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs rounded-lg transition text-center">
+              Copiar Resumen para Informe
+            </button>
+          </div>
+        </div>
+
+        <!-- Ranking and Saved Comparison Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">Tabla de Priorización</h4>
+            <span class="text-xs text-slate-400 font-normal">Comparativa en vivo</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2 px-2">Iniciativa</th>
+                  <th class="py-2 px-1 text-center">Pts</th>
+                  <th class="py-2 px-1 text-center">Orden</th>
+                  <th class="py-2 px-1 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="ranking-tbody" class="divide-y divide-slate-100">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Notification Toast Container -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-lg shadow-xl border border-slate-700 transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center space-x-2">
+    <span id="toast-message">Notificación</span>
+  </div>
+
+  <script>
+    // Rubric Definitions Data Dictionary
+    const RUBRIC_DATA = {
+      c1: {
+        name: 'Impacto Cívico',
+        weight: 0.35,
+        maxPts: 1.75,
+        color: 'blue',
+        levels: {
+          1: { label: 'Nivel 1: Micro / Puntual', desc: 'Menos de 5.000 beneficiarios; alcance de una cuadra o plaza vecinal aislada.' },
+          2: { label: 'Nivel 2: Sectorial bajo', desc: 'Entre 5.000 y 25.000 personas; afecta a un barrio específico o trama secundaria.' },
+          3: { label: 'Nivel 3: Distrital / Zonal', desc: 'Entre 25.000 y 70.000 personas; involucra a un cuadrante urbano o varios barrios.' },
+          4: { label: 'Nivel 4: Urbano general', desc: 'Entre 70.000 y 200.000 personas; impacto transversal en una función clave de la ciudad.' },
+          5: { label: 'Nivel 5: Metropolitano / Masivo', desc: 'Más de 200.000 personas; infraestructura troncal, transporte masivo o salud pública.' }
+        }
+      },
+      c2: {
+        name: 'Urgencia Coyuntural',
+        weight: 0.25,
+        maxPts: 1.25,
+        color: 'amber',
+        levels: {
+          1: { label: 'Nivel 1: Diferible', desc: 'Horizonte mayor a 12 meses; problema estable sin riesgo de daño progresivo ni debate activo.' },
+          2: { label: 'Nivel 2: Baja', desc: 'Horizonte de 6 a 12 meses; desgaste paulatino sin agravamiento estacional inmediato.' },
+          3: { label: 'Nivel 3: Media', desc: 'Horizonte de 3 a 6 meses; debate legislativo preliminar o deterioro medible con quejas.' },
+          4: { label: 'Nivel 4: Alta', desc: 'Horizonte de 30 a 90 días; ventana legislativa abierta (CPU) o cambio operativo en marcha.' },
+          5: { label: 'Nivel 5: Crítica / Inmediata', desc: 'Menos de 30 días; riesgo inminente de daño físico o colapso irreversible (lluvias estivales).' }
+        }
+      },
+      c3: {
+        name: 'Viabilidad Técnica y Legal',
+        weight: 0.20,
+        maxPts: 1.00,
+        color: 'emerald',
+        levels: {
+          1: { label: 'Nivel 1: Muy compleja', desc: 'Expropiaciones masivas, endeudamiento internacional o reformas constitucionales.' },
+          2: { label: 'Nivel 2: Compleja', desc: 'Grandes partidas presupuestarias y consenso entre más de 3 jurisdicciones contrapuestas.' },
+          3: { label: 'Nivel 3: Media', desc: 'Demanda articulación intergubernamental provincia-municipio con entes como DPA o Vialidad.' },
+          4: { label: 'Nivel 4: Favorable', desc: 'Ordenanza municipal directa o Ley de adhesión; costo fiscal bajo, nulo o privado.' },
+          5: { label: 'Nivel 5: Inmediata / Óptima', desc: 'Resolución o decreto reglamentario; recursos técnicos y partidas ya disponibles.' }
+        }
+      },
+      c4: {
+        name: 'Densidad Afectada',
+        weight: 0.20,
+        maxPts: 1.00,
+        color: 'purple',
+        levels: {
+          1: { label: 'Nivel 1: Baja / Dispersa', desc: 'Menos de 1.500 hab/km²; suelo rural, industrial o borde periurbano disperso.' },
+          2: { label: 'Nivel 2: Residencial baja', desc: '1.500 a 3.500 hab/km²; loteos periféricos o zonas suburbanas de baja ocupación.' },
+          3: { label: 'Nivel 3: Residencial media', desc: '3.500 a 6.000 hab/km²; barrios residenciales consolidados fuera de las 4 avenidas.' },
+          4: { label: 'Nivel 4: Urbana alta', desc: '6.000 a 10.000 hab/km²; macrocentro y corredores comerciales o troncales.' },
+          5: { label: 'Nivel 5: Hiperdensidad / Nodal', desc: 'Más de 10.000 hab/km² o nodos de máxima afluencia de pasajeros diarios (Microcentro, B° Sur).' }
+        }
+      }
+    };
+
+    // Current State
+    let currentScore = {
+      name: 'Protocolo SAT - Municipio',
+      desc: 'Ventanilla única de interferencias subterráneas y protocolo vinculante de reparación de pavimento.',
+      c1: 5,
+      c2: 5,
+      c3: 4,
+      c4: 5
+    };
+
+    // Initial Projects Registry
+    let savedProjects = [
+      { id: 1, name: 'Protocolo SAT - Municipio', c1: 5, c2: 5, c3: 4, c4: 5, total: 4.80, priority: 'Prioridad 1' },
+      { id: 2, name: 'Paradas Seguras PIMU', c1: 5, c2: 4, c3: 4, c4: 5, total: 4.55, priority: 'Prioridad 2' },
+      { id: 3, name: 'Drenaje Sostenible SUDS', c1: 5, c2: 4, c3: 3, c4: 4, total: 4.15, priority: 'Prioridad 3' },
+      { id: 4, name: 'Patrimonio y FOT (CPU)', c1: 4, c2: 4, c3: 4, c4: 4, total: 4.00, priority: 'Prioridad 4' }
+    ];
+
+    // Presets definitions
+    const PRESETS = {
+      sat: {
+        name: 'Protocolo SAT - Municipio',
+        desc: 'Ventanilla única de interferencias subterráneas, catastro GIS unificado y plazos perentorios de reparación de calzada.',
+        c1: 5, c2: 5, c3: 4, c4: 5
+      },
+      pimu: {
+        name: 'Paradas Seguras y Veredas Activas (PIMU)',
+        desc: 'Refugios modulares antivandálicos con iluminación solar y bonificación de CISI a frentes con plantas bajas transparentes.',
+        c1: 5, c2: 4, c3: 4, c4: 5
+      },
+      suds: {
+        name: 'Red Metropolitana de Drenaje Sostenible (SUDS)',
+        desc: 'Retardadores de tormenta y pavimentos permeables obligatorios en loteos del pedemonte (cuenca Yerba Buena - Capital).',
+        c1: 5, c2: 4, c3: 3, c4: 4
+      },
+      cpu: {
+        name: 'Transferencia de Capacidad Constructiva (Patrimonio CPU)',
+        desc: 'Mecanismo de venta de m² no construidos (FOT) de casonas patrimoniales hacia corredores de alta densidad.',
+        c1: 4, c2: 4, c3: 4, c4: 4
+      }
+    };
+
+    // UI Toast Notification helper
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    // Update Rating Buttons Visuals
+    function updateButtonGroup(critKey, value) {
+      const group = document.getElementById(`group-${critKey}`);
+      if (!group) return;
+      const buttons = group.querySelectorAll('button');
+      buttons.forEach(btn => {
+        const val = parseInt(btn.getAttribute('data-val'), 10);
+        if (val === value) {
+          btn.className = 'btn-score py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white shadow-sm border border-indigo-700 text-center transition';
+        } else {
+          btn.className = 'btn-score py-2 text-xs font-semibold rounded-lg bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition text-center';
+        }
+      });
+
+      // Update definition box
+      const info = RUBRIC_DATA[critKey].levels[value];
+      const weight = RUBRIC_DATA[critKey].weight;
+      const pts = (value * weight).toFixed(2);
+      
+      document.getElementById(`label-${critKey}`).textContent = info.label;
+      document.getElementById(`detail-${critKey}`).textContent = info.desc;
+      document.getElementById(`calc-${critKey}`).textContent = `Aporte: ${value} × ${weight.toFixed(2)} = ${pts} pts`;
+    }
+
+    // Calculate Total and Refresh Dashboard
+    function recalculate() {
+      const p1 = currentScore.c1 * RUBRIC_DATA.c1.weight;
+      const p2 = currentScore.c2 * RUBRIC_DATA.c2.weight;
+      const p3 = currentScore.c3 * RUBRIC_DATA.c3.weight;
+      const p4 = currentScore.c4 * RUBRIC_DATA.c4.weight;
+      const total = p1 + p2 + p3 + p4;
+
+      // Update values in UI
+      document.getElementById('score-total').textContent = total.toFixed(2);
+
+      document.getElementById('val-c1-calc').textContent = `${p1.toFixed(2)} / ${RUBRIC_DATA.c1.maxPts.toFixed(2)}`;
+      document.getElementById('val-c2-calc').textContent = `${p2.toFixed(2)} / ${RUBRIC_DATA.c2.maxPts.toFixed(2)}`;
+      document.getElementById('val-c3-calc').textContent = `${p3.toFixed(2)} / ${RUBRIC_DATA.c3.maxPts.toFixed(2)}`;
+      document.getElementById('val-c4-calc').textContent = `${p4.toFixed(2)} / ${RUBRIC_DATA.c4.maxPts.toFixed(2)}`;
+
+      document.getElementById('bar-c1').style.width = `${(p1 / RUBRIC_DATA.c1.maxPts) * 100}%`;
+      document.getElementById('bar-c2').style.width = `${(p2 / RUBRIC_DATA.c2.maxPts) * 100}%`;
+      document.getElementById('bar-c3').style.width = `${(p3 / RUBRIC_DATA.c3.maxPts) * 100}%`;
+      document.getElementById('bar-c4').style.width = `${(p4 / RUBRIC_DATA.c4.maxPts) * 100}%`;
+
+      // Badge & Recommendation text logic
+      const badge = document.getElementById('badge-priority');
+      const rec = document.getElementById('recommendation-text');
+
+      if (total >= 4.50) {
+        badge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm';
+        badge.textContent = 'Prioridad 1 — Inmediata';
+        rec.textContent = 'Iniciativa prioritaria y de alto impacto social. Redactar el proyecto de Ordenanza o Ley de inmediato para su tratamiento preferente.';
+      } else if (total >= 4.20) {
+        badge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300 shadow-sm';
+        badge.textContent = 'Prioridad 2 — Alta';
+        rec.textContent = 'Iniciativa estratégica con viabilidad favorable. Armar dictamen técnico y coordinar con bloques afines antes de fin de mes.';
+      } else if (total >= 3.80) {
+        badge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 shadow-sm';
+        badge.textContent = 'Prioridad 3 — Media-Alta / Estructural';
+        rec.textContent = 'Iniciativa relevante pero con mayor dependencia institucional o presupuestaria. Plantear mesa técnica de trabajo o pedido de informes.';
+      } else {
+        badge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300 shadow-sm';
+        badge.textContent = 'Prioridad 4 — Diferible / En Estudio';
+        rec.textContent = 'Maduración técnica pendiente o impacto localizado. Mantener en carpeta para futuras rondas de consultas vecinales.';
+      }
+
+      return total;
+    }
+
+    // Render Saved Projects Table
+    function renderRankingTable() {
+      const tbody = document.getElementById('ranking-tbody');
+      tbody.innerHTML = '';
+
+      // Sort descending by score
+      savedProjects.sort((a, b) => b.total - a.total);
+
+      savedProjects.forEach((proj, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-2">
+            <div class="font-semibold text-slate-900 leading-tight">${proj.name}</div>
+            <div class="text-[10px] text-slate-400">Imp:${proj.c1} | Urg:${proj.c2} | Via:${proj.c3} | Den:${proj.c4}</div>
+          </td>
+          <td class="py-2.5 px-1 text-center font-mono font-bold text-slate-800">${proj.total.toFixed(2)}</td>
+          <td class="py-2.5 px-1 text-center">
+            <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
+              idx === 0 ? 'bg-emerald-100 text-emerald-800' :
+              idx === 1 ? 'bg-blue-100 text-blue-800' :
+              idx === 2 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
+            }">#${idx + 1}</span>
+          </td>
+          <td class="py-2.5 px-1 text-right space-x-1">
+            <button class="btn-load-row text-indigo-600 hover:text-indigo-800 font-medium text-[11px]" data-id="${proj.id}">Cargar</button>
+            <button class="btn-del-row text-rose-500 hover:text-rose-700 text-[11px]" data-id="${proj.id}">✕</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Attach row action listeners
+      tbody.querySelectorAll('.btn-load-row').forEach(b => {
+        b.addEventListener('click', (e) => {
+          const id = parseInt(e.target.getAttribute('data-id'), 10);
+          loadProjectById(id);
+        });
+      });
+
+      tbody.querySelectorAll('.btn-del-row').forEach(b => {
+        b.addEventListener('click', (e) => {
+          const id = parseInt(e.target.getAttribute('data-id'), 10);
+          savedProjects = savedProjects.filter(p => p.id !== id);
+          renderRankingTable();
+          showToast('Iniciativa eliminada de la tabla');
+        });
+      });
+    }
+
+    function loadProjectById(id) {
+      const p = savedProjects.find(item => item.id === id);
+      if (!p) return;
+      currentScore.name = p.name;
+      currentScore.desc = p.desc || '';
+      currentScore.c1 = p.c1;
+      currentScore.c2 = p.c2;
+      currentScore.c3 = p.c3;
+      currentScore.c4 = p.c4;
+
+      document.getElementById('project-name').value = currentScore.name;
+      document.getElementById('project-desc').value = currentScore.desc;
+
+      updateButtonGroup('c1', currentScore.c1);
+      updateButtonGroup('c2', currentScore.c2);
+      updateButtonGroup('c3', currentScore.c3);
+      updateButtonGroup('c4', currentScore.c4);
+      recalculate();
+      showToast(`Cargado: "${p.name}"`);
+    }
+
+    function applyPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+      currentScore.name = p.name;
+      currentScore.desc = p.desc;
+      currentScore.c1 = p.c1;
+      currentScore.c2 = p.c2;
+      currentScore.c3 = p.c3;
+      currentScore.c4 = p.c4;
+
+      document.getElementById('project-name').value = p.name;
+      document.getElementById('project-desc').value = p.desc;
+
+      updateButtonGroup('c1', p.c1);
+      updateButtonGroup('c2', p.c2);
+      updateButtonGroup('c3', p.c3);
+      updateButtonGroup('c4', p.c4);
+      recalculate();
+      showToast(`Plantilla cargada: ${p.name}`);
+    }
+
+    // Set up button event listeners
+    function setupEventListeners() {
+      // Setup score buttons for each criterion
+      ['c1', 'c2', 'c3', 'c4'].forEach(critKey => {
+        const container = document.getElementById(`group-${critKey}`);
+        if (!container) return;
+        container.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const val = parseInt(e.target.getAttribute('data-val'), 10);
+            currentScore[critKey] = val;
+            updateButtonGroup(critKey, val);
+            recalculate();
+          });
+        });
+      });
+
+      // Project metadata inputs
+      document.getElementById('project-name').addEventListener('input', (e) => {
+        currentScore.name = e.target.value;
+      });
+      document.getElementById('project-desc').addEventListener('input', (e) => {
+        currentScore.desc = e.target.value;
+      });
+
+      // Preset buttons
+      document.getElementById('btn-preset-sat').addEventListener('click', () => applyPreset('sat'));
+      document.getElementById('btn-preset-pimu').addEventListener('click', () => applyPreset('pimu'));
+      document.getElementById('btn-preset-suds').addEventListener('click', () => applyPreset('suds'));
+      document.getElementById('btn-preset-cpu').addEventListener('click', () => applyPreset('cpu'));
+
+      // Reset button
+      document.getElementById('btn-reset-form').addEventListener('click', () => {
+        currentScore = {
+          name: '',
+          desc: '',
+          c1: 3, c2: 3, c3: 3, c4: 3
+        };
+        document.getElementById('project-name').value = '';
+        document.getElementById('project-desc').value = '';
+        updateButtonGroup('c1', 3);
+        updateButtonGroup('c2', 3);
+        updateButtonGroup('c3', 3);
+        updateButtonGroup('c4', 3);
+        recalculate();
+        showToast('Formulario restablecido a valores medios (3/5)');
+      });
+
+      // Save project button
+      document.getElementById('btn-save-project').addEventListener('click', () => {
+        const name = (document.getElementById('project-name').value || 'Iniciativa sin título').trim();
+        const desc = document.getElementById('project-desc').value.trim();
+        const total = recalculate();
+        
+        let priorityLabel = 'Prioridad 4';
+        if (total >= 4.50) priorityLabel = 'Prioridad 1';
+        else if (total >= 4.20) priorityLabel = 'Prioridad 2';
+        else if (total >= 3.80) priorityLabel = 'Prioridad 3';
+
+        // Check if already in list to update or add
+        const existingIdx = savedProjects.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+        if (existingIdx >= 0) {
+          savedProjects[existingIdx] = {
+            id: savedProjects[existingIdx].id,
+            name, desc,
+            c1: currentScore.c1,
+            c2: currentScore.c2,
+            c3: currentScore.c3,
+            c4: currentScore.c4,
+            total,
+            priority: priorityLabel
+          };
+          showToast(`"${name}" actualizado en la lista.`);
+        } else {
+          savedProjects.push({
+            id: Date.now(),
+            name, desc,
+            c1: currentScore.c1,
+            c2: currentScore.c2,
+            c3: currentScore.c3,
+            c4: currentScore.c4,
+            total,
+            priority: priorityLabel
+          });
+          showToast(`"${name}" agregado al ranking.`);
+        }
+        renderRankingTable();
+      });
+
+      // Copy summary to clipboard
+      document.getElementById('btn-copy-summary').addEventListener('click', () => {
+        const name = document.getElementById('project-name').value || 'Iniciativa Urbana';
+        const total = document.getElementById('score-total').textContent;
+        const priority = document.getElementById('badge-priority').textContent.trim();
+        const p1 = (currentScore.c1 * 0.35).toFixed(2);
+        const p2 = (currentScore.c2 * 0.25).toFixed(2);
+        const p3 = (currentScore.c3 * 0.20).toFixed(2);
+        const p4 = (currentScore.c4 * 0.20).toFixed(2);
+
+        const summaryText = 
+`*Evaluación Técnica de Priorización Urbana*
+Iniciativa: ${name}
+Puntaje Global: ${total} / 5.00 (${priority})
+- Impacto Cívico (35%): ${currentScore.c1}/5 -> ${p1} pts
+- Urgencia Coyuntural (25%): ${currentScore.c2}/5 -> ${p2} pts
+- Viabilidad Técnica (20%): ${currentScore.c3}/5 -> ${p3} pts
+- Densidad Afectada (20%): ${currentScore.c4}/5 -> ${p4} pts
+Asesoría Urbana Romano Norri | San Miguel de Tucumán`;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(summaryText)
+            .then(() => showToast('¡Resumen copiado al portapapeles!'))
+            .catch(() => fallbackCopy(summaryText));
+        } else {
+          fallbackCopy(summaryText);
+        }
+      });
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('¡Resumen copiado al portapapeles!');
+      } catch (err) {
+        showToast('No se pudo copiar automáticamente.');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('project-name').value = currentScore.name;
+      document.getElementById('project-desc').value = currentScore.desc;
+      updateButtonGroup('c1', currentScore.c1);
+      updateButtonGroup('c2', currentScore.c2);
+      updateButtonGroup('c3', currentScore.c3);
+      updateButtonGroup('c4', currentScore.c4);
+      recalculate();
+      renderRankingTable();
+      setupEventListeners();
+    });
+  </script>
+</body>
+</html>
